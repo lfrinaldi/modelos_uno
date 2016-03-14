@@ -1,0 +1,45 @@
+# Conjuntos
+set DISTANCIAS;
+set TIEMPOS;
+set VERTICES;
+set COMBIS;
+
+#Parametros (o constantes):
+param DISTANCIA_I_J{i in DISTANCIAS, j in DISTANCIAS : i<>j};
+param VERTICE{v in VERTICES};
+param COMBI{c in COMBIS};
+
+
+#Variables:
+var Y{i in VERTICES, c in COMBIS} >= 0, binary;
+
+var X{i in VERTICES, j in VERTICES, c in COMBIS} >= 0, binary;
+
+var W{s in VERTICES, q in VERTICES} >=0, binary;
+
+var CANTIDAD_COMBIS >= 0, integer;
+
+#Funcional:
+minimize z: sum{i in VERTICES, j in VERTICES, c in COMBIS : i<>j} DISTANCIAS[i,j]*X[i,j,c] + CANTIDAD_COMBIS; #falta agregar los costos ctes
+
+#De cada vertice a excepcion del origen sale un unico camino
+s.t. visitado{i in VERTICES}: sum{j in VERTICES, c in COMBIS: i<>j} X[i,j,c] = 1;
+
+#El mismo numero de vehiculos que entran van a salir
+s.t. numero_vehiculos{i in VERTICES}: sum{j in VERTICES, c in COMBIS: i<>j} X[i,j,c] = sum{j in VERTICES, c in COMBIS: i<>j} X[j,i,c] = sum Y[i,c];
+
+#De la empresa salen c vehÄ±culos los cuales regresaran al final del trayecto.
+s.t. salen_de_empresa{c in COMBIS}: sum{j in VERTICES, c in COMBIS: i<>j and j<>e } X[e,j,c] = c;
+s.t. vuelven_a_empresa{c in COMBIS}: sum{j in VERTICES, c in COMBIS: i<>j and j<>e } X[i,e,c] = c;
+
+#Capidad de las combis no puede ser mayor a 15
+s.t. capacidad{c in COMBIS}: sum{i in VERTICES} Y[i,c] <= 15;
+
+
+
+solve;
+#Data segment
+data;
+set COMBIS:= 1 2 3;
+set VERTICES:= ;
+end;
